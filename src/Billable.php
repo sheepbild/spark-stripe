@@ -2,6 +2,7 @@
 
 namespace Spark;
 
+use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Laravel\Cashier\Billable as CashierBillable;
 use Laravel\Cashier\Jobs\SyncCustomerDetails;
@@ -81,18 +82,6 @@ trait Billable
             'postal_code' => $this->billing_postal_code,
             'country' => $this->billing_country,
         ];
-    }
-
-    /**
-     * Get all of the local receipts.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     *
-     * @deprecated This method will be removed in a future Spark release.
-     */
-    public function localReceipts()
-    {
-        return $this->hasMany(Receipt::class, $this->getForeignKey())->orderBy('id', 'desc');
     }
 
     /**
@@ -208,12 +197,12 @@ trait Billable
     }
 
     /**
-     * Get the receipt emails.
+     * Get the invoice emails.
      *
      * @param  mixed  $value
      * @return array
      */
-    public function getReceiptEmailsAttribute($value)
+    public function getInvoiceEmailsAttribute($value)
     {
         if (is_null($value)) {
             return [];
@@ -258,7 +247,9 @@ trait Billable
             return $this->trial_ends_at->isFuture();
         }
 
-        return Carbon::createFromFormat('Y-m-d H:i:s', $this->trial_ends_at)->isFuture();
+        return Carbon::createFromFormat(
+            'Y-m-d H:i:s', $this->trial_ends_at instanceof CarbonInterface ? $this->trial_ends_at->toDatetimeString() : $this->trial_ends_at
+        )->isFuture();
     }
 
     /**
@@ -276,7 +267,9 @@ trait Billable
             return $this->trial_ends_at;
         }
 
-        return Carbon::createFromFormat('Y-m-d H:i:s', $this->trial_ends_at);
+        return Carbon::createFromFormat(
+            'Y-m-d H:i:s', $this->trial_ends_at instanceof CarbonInterface ? $this->trial_ends_at->toDatetimeString() : $this->trial_ends_at
+        );
     }
 
     /**

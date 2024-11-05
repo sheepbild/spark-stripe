@@ -16,7 +16,7 @@ class PayInvoice implements PaysInvoices
     use HandlesPaymentFailures;
 
     /**
-     * Pay the invoice related to the given receipt.
+     * Pay the invoice.
      *
      * @param  \Spark\Billable  $billable
      * @return void

@@ -7,7 +7,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\HtmlString;
 
-class NewReceipt extends Mailable
+class NewInvoice extends Mailable
 {
     use Queueable;
     use SerializesModels;
@@ -46,18 +46,18 @@ class NewReceipt extends Mailable
      */
     public function build()
     {
-        $receiptData = array_merge([
+        $invoiceData = array_merge([
             'vendor' => 'Laravel',
             'product' => '',
             'street' => '',
             'location' => '',
             'vat' => new HtmlString(nl2br(e($this->billable->extra_billing_information))),
-        ], config('spark.receipt_data'));
+        ], config('spark.invoice_data'));
 
-        $filename = $receiptData['product'].'_'.$this->invoice->date()->month.'_'.$this->invoice->date()->year;
+        $filename = $invoiceData['product'].'_'.$this->invoice->date()->month.'_'.$this->invoice->date()->year;
 
-        return $this->markdown('spark::mail.receipt')
+        return $this->markdown('spark::mail.invoice')
             ->subject(__('Your :invoiceName invoice is now available!', ['invoiceName' => $this->invoice->date()->format('F Y')]))
-            ->attachData($this->invoice->pdf($receiptData), $filename.'.pdf');
+            ->attachData($this->invoice->pdf($invoiceData), $filename.'.pdf');
     }
 }

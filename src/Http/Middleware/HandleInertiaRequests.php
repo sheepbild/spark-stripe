@@ -2,7 +2,9 @@
 
 namespace Spark\Http\Middleware;
 
+use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -35,5 +37,17 @@ class HandleInertiaRequests extends Middleware
                 ],
             ],
         ]);
+    }
+
+    /**
+     * Handle the incoming request.
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function handle(Request $request, Closure $next)
+    {
+        Config::set('inertia.ssr.enabled', false);
+
+        return parent::handle($request, $next);
     }
 }

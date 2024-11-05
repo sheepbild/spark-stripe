@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddSparkColumnsToUsersTable extends Migration
+return new class extends Migration
 {
     /**
      * Run the migrations.
@@ -25,7 +25,7 @@ class AddSparkColumnsToUsersTable extends Migration
             $table->string('billing_postal_code', 25)->nullable()->after('billing_state');
             $table->string('billing_country', 2)->nullable()->after('billing_postal_code');
             $table->string('vat_id', 50)->nullable()->after('billing_postal_code');
-            $table->text('receipt_emails')->nullable()->after('vat_id');
+            $table->text('invoice_emails')->nullable()->after('vat_id');
         });
     }
 
@@ -49,8 +49,8 @@ class AddSparkColumnsToUsersTable extends Migration
                 'billing_postal_code',
                 'billing_country',
                 'vat_id',
-                'receipt_emails',
+                'invoice_emails',
             ]);
         });
     }
-}
+};

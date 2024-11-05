@@ -10,19 +10,19 @@
         }
     ],
     "require": {
-        "php": "^8.0",
+        "php": "^8.1",
         "ext-json": "*",
         "dompdf/dompdf": "^2.0",
-        "illuminate/contracts": "^9.0|^10.0",
-        "inertiajs/inertia-laravel": "^0.5.1|^0.6.4",
-        "laravel/cashier": "^14.13",
-        "mpociot/vat-calculator": "^3.0"
+        "illuminate/contracts": "^10.0|^11.0",
+        "inertiajs/inertia-laravel": "^0.6.4|^1.0",
+        "laravel/cashier": "^15.1",
+        "mpociot/vat-calculator": "^3.10"
     },
     "require-dev": {
         "mockery/mockery": "^1.0",
-        "orchestra/testbench": "^7.0|^8.0",
+        "orchestra/testbench": "^8.14|^9.0",
         "phpstan/phpstan": "^1.10",
-        "phpunit/phpunit": "^9.5"
+        "phpunit/phpunit": "^10.4"
     },
     "autoload": {
         "psr-4": {
@@ -36,7 +36,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "4.x-dev"
+            "dev-master": "5.x-dev"
         },
         "laravel": {
             "providers": [

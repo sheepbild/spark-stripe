@@ -70,13 +70,13 @@ class Features
     }
 
     /**
-     * Determine if the application is using the receipt emails sending feature.
+     * Determine if the application is using the invoice emails sending feature.
      *
      * @return bool
      */
-    public static function sendsReceiptEmails()
+    public static function sendsInvoiceEmails()
     {
-        return static::enabled('receipt-emails-sending');
+        return static::enabled('invoice-emails-sending');
     }
 
     /**
@@ -124,19 +124,19 @@ class Features
     }
 
     /**
-     * Enable the receipt emails sending feature.
+     * Enable the invoice emails sending feature.
      *
      * @return string
      */
-    public static function receiptEmails(array $options = [])
+    public static function invoiceEmails(array $options = [])
     {
-        config(['spark-options.receipt-emails-sending' => $options]);
+        config(['spark-options.invoice-emails-sending' => $options]);
 
-        return 'receipt-emails-sending';
+        return 'invoice-emails-sending';
     }
 
     /**
-     * Enable the receipt emails sending feature.
+     * Enable the invoice emails sending feature.
      *
      * @return string
      */

@@ -101,7 +101,7 @@ class CreateSubscription implements CreatesSubscriptions
             return;
         }
 
-        if (now()->diffInDays($subscription->ends_at) < $skipTrialIfSubscribedBefore) {
+        if (abs(now()->diffInDays($subscription->ends_at)) < $skipTrialIfSubscribedBefore) {
             $builder->skipTrial();
 
             return;

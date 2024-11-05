@@ -27,12 +27,12 @@
 
             <div class="mt-3 space-y-2">
                 <div class="flex items-center" v-for="feature in plan.features">
-                    <svg viewBox="0 0 20 20" fill="currentColor" class="text-green-400 opacity-75 inline-block flex-shrink-0 w-5 h-5">
+                    <svg viewBox="0 0 20 20" fill="currentColor" :class="{'text-green-400': !feature.startsWith('--'), 'text-gray-400': feature.startsWith('--')}" class="flex-shrink-0 w-5 h-5">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                     </svg>
 
-                    <div class="ml-2 text-sm text-gray-600">
-                        {{ __(feature) }}
+                    <div class="ml-2 text-sm text-gray-600" :class="{'text-gray-600': !feature.startsWith('--'), 'text-gray-400 line-through': feature.startsWith('--')}">
+                        {{ __(feature.startsWith('--') ? feature.slice(2) : feature) }}
                     </div>
                 </div>
             </div>

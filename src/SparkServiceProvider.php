@@ -4,7 +4,6 @@ namespace Spark;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use Laravel\Cashier\Cashier;
 use Laravel\Cashier\Events\WebhookHandled;
 use RuntimeException;
 use Spark\Contracts\Actions\CalculatesVatRate;
@@ -23,8 +22,6 @@ class SparkServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        Cashier::ignoreMigrations();
-
         if (! $this->app->configurationIsCached()) {
             $this->mergeConfigFrom(__DIR__.'/../config/spark.php', 'spark');
         }
@@ -54,7 +51,6 @@ class SparkServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'spark');
 
         $this->configureRoutes();
-        $this->configureMigrations();
         $this->configureTranslations();
         $this->configurePublishing();
         $this->configureListeners();
@@ -70,18 +66,6 @@ class SparkServiceProvider extends ServiceProvider
         Route::group([], function () {
             $this->loadRoutesFrom(__DIR__.'/../routes/routes.php');
         });
-    }
-
-    /**
-     * Configure Spark migrations.
-     *
-     * @return void
-     */
-    protected function configureMigrations()
-    {
-        if (Spark::runsMigrations() && $this->app->runningInConsole()) {
-            $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        }
     }
 
     /**
@@ -121,7 +105,11 @@ class SparkServiceProvider extends ServiceProvider
             __DIR__.'/../stubs/SparkServiceProvider.php' => app_path('Providers/SparkServiceProvider.php'),
         ], 'spark-provider');
 
-        $this->publishes([
+        $publishesMigrationsMethod = method_exists($this, 'publishesMigrations')
+            ? 'publishesMigrations'
+            : 'publishes';
+
+        $this->{$publishesMigrationsMethod}([
             __DIR__.'/../database/migrations' => database_path('migrations'),
         ], 'spark-migrations');
     }

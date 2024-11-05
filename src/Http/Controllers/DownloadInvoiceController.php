@@ -5,30 +5,30 @@ namespace Spark\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\HtmlString;
 
-class DownloadReceiptController
+class DownloadInvoiceController
 {
     use RetrievesBillableModels;
 
     /**
-     * Download the given receipt.
+     * Download the given invoice.
      *
      * @param  string  $type
      * @param  string  $id
-     * @param  string  $receiptId
+     * @param  string  $invoiceId
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function __invoke(Request $request, $type, $id, $receiptId)
+    public function __invoke(Request $request, $type, $id, $invoiceId)
     {
         $billable = $this->billable($type, $id);
 
-        $receiptData = array_merge([
+        $invoiceData = array_merge([
             'vendor' => 'Laravel',
             'product' => '',
             'street' => '',
             'location' => '',
             'vat' => new HtmlString(nl2br(e($billable->extra_billing_information))),
-        ], config('spark.receipt_data'));
+        ], config('spark.invoice_data'));
 
-        return $billable->downloadInvoice($receiptId, $receiptData);
+        return $billable->downloadInvoice($invoiceId, $invoiceData);
     }
 }

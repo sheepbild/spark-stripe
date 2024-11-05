@@ -3,6 +3,7 @@
 namespace Spark\Console;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 
 class InstallCommand extends Command
@@ -32,6 +33,7 @@ class InstallCommand extends Command
         $this->callSilent('vendor:publish', ['--tag' => 'spark-config']);
         $this->callSilent('vendor:publish', ['--tag' => 'spark-views']);
         $this->callSilent('vendor:publish', ['--tag' => 'spark-lang']);
+        $this->callSilent('vendor:publish', ['--tag' => 'spark-migrations']);
 
         $this->registerSparkServiceProvider();
 
@@ -46,6 +48,10 @@ class InstallCommand extends Command
     protected function registerSparkServiceProvider()
     {
         $namespace = Str::replaceLast('\\', '', $this->laravel->getNamespace());
+
+        if (file_exists($this->laravel->bootstrapPath('providers.php'))) {
+            return ServiceProvider::addProviderToBootstrapFile("{$namespace}\\Providers\\SparkServiceProvider");
+        }
 
         $appConfig = file_get_contents(config_path('app.php'));
 

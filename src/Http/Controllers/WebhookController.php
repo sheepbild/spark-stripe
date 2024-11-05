@@ -4,7 +4,6 @@ namespace Spark\Http\Controllers;
 
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Mail;
-use Laravel\Cashier\Cashier;
 use Laravel\Cashier\Http\Controllers\WebhookController as CashierController;
 use Laravel\Cashier\Invoice;
 use Laravel\Cashier\Payment;
@@ -14,11 +13,29 @@ use Spark\Events\SubscriptionCreated;
 use Spark\Events\SubscriptionUpdated;
 use Spark\Features;
 use Spark\Mail\ConfirmPayment;
-use Spark\Mail\NewReceipt;
+use Spark\Mail\NewInvoice;
 use Stripe\Subscription;
 
 class WebhookController extends CashierController
 {
+    /**
+     * {@inheritDoc}
+     */
+    protected function handleCustomerSubscriptionCreated(array $payload)
+    {
+        $response = parent::handleCustomerSubscriptionCreated($payload);
+
+        if ($billable = $this->getUserByStripeId($payload['data']['object']['customer'])) {
+            $subscription = $billable->subscriptions()->where('stripe_id', $payload['data']['object']['id'])->first();
+
+            if ($subscription->stripe_status === Subscription::STATUS_ACTIVE) {
+                event(new SubscriptionCreated($billable, $subscription->refresh()));
+            }
+        }
+
+        return $response;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -38,11 +55,11 @@ class WebhookController extends CashierController
                     $newStatus == Subscription::STATUS_ACTIVE &&
                     ! in_array($oldStatus, [Subscription::STATUS_ACTIVE, Subscription::STATUS_TRIALING])) {
                     event(new SubscriptionCreated($billable, $subscription->refresh()));
-
-                    $billable->update(['trial_ends_at' => null]);
                 } else {
                     event(new SubscriptionUpdated($billable, $subscription->refresh()));
                 }
+            } else {
+                parent::handleCustomerSubscriptionUpdated($payload);
             }
         }
 
@@ -99,16 +116,7 @@ class WebhookController extends CashierController
     {
         if ($billable = $this->getUserByStripeId($payload['data']['object']['customer'])) {
             if ($invoice = $billable->findInvoice($payload['data']['object']['id'])) {
-                if (! $billable->localReceipts()->where('provider_id', $invoice->id)->first()) {
-                    $billable->localReceipts()->create([
-                        'provider_id' => $invoice->id,
-                        'amount' => Cashier::formatAmount($invoice->amount_due, $invoice->currency),
-                        'tax' => $invoice->tax(),
-                        'paid_at' => $invoice->date(),
-                    ]);
-
-                    $this->sendReceiptNotification($billable, $invoice);
-                }
+                $this->sendInvoiceNotification($billable, $invoice);
 
                 event(new PaymentSucceeded($billable, $invoice));
             }
@@ -146,27 +154,27 @@ class WebhookController extends CashierController
     }
 
     /**
-     * Send the receipt notification email.
+     * Send the invoice notification email.
      *
      * @param  \Spark\Billable  $billable
      * @param  \Laravel\Cashier\Invoice|null  $invoice
      * @return void
      */
-    protected function sendReceiptNotification($billable, $invoice)
+    protected function sendInvoiceNotification($billable, $invoice)
     {
-        if (! config('spark.sends_receipt_emails') && ! Features::sendsReceiptEmails()) {
+        if (! config('spark.sends_receipt_emails') && ! Features::sendsInvoiceEmails()) {
             return;
         }
 
-        $mails = Features::optionEnabled('receipt-emails-sending', 'custom-addresses')
-            ? $billable->receipt_emails : [];
+        $mails = Features::optionEnabled('invoice-emails-sending', 'custom-addresses')
+            ? $billable->invoice_emails : [];
 
         if (empty($mails)) {
             $mails = [$billable->stripeEmail()];
         }
 
         Mail::to($mails)->send(
-            new NewReceipt($billable, $invoice)
+            new NewInvoice($billable, $invoice)
         );
     }
 

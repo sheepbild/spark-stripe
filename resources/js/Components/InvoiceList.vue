@@ -1,22 +1,22 @@
 <template>
     <div>
         <div class="bg-white sm:rounded-lg shadow-sm divide-y divide-gray-100">
-            <div class="flex items-center px-6 py-4" v-for="receipt in receiptsData()" :key="receipt.id">
+            <div class="flex items-center px-6 py-4" v-for="invoice in invoicesData()" :key="invoice.id">
                 <div class="text-xs sm:text-sm w-full">
-                    {{ receipt.date }}
+                    {{ invoice.date }}
                 </div>
 
                 <div class="text-xs sm:text-sm w-full">
                     <div class="px-2">
-                        {{ receipt.amount }}
+                        {{ invoice.amount }}
                     </div>
                 </div>
 
                 <div class="text-sm w-full">
-                    <span v-if="receipt.status === 'open'" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    <span v-if="invoice.status === 'open'" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                         {{ __('Unpaid') }}
                     </span>
-                    <span v-else-if="receipt.status === 'pending'" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800" :title="__('This payment was initiated, but the funds have not been received yet. This can take up to 14 days.')">
+                    <span v-else-if="invoice.status === 'pending'" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800" :title="__('This payment was initiated, but the funds have not been received yet. This can take up to 14 days.')">
                         {{ __('Pending') }}
 
                         <svg class="ml-1 w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -30,9 +30,9 @@
 
                 <div class="text-sm text-gray-700 shrink-0 flex items-center justify-end">
                     <div class="sm:w-52 text-right">
-                        <span v-if="receipt.status === 'open'">
+                        <span v-if="invoice.status === 'open'">
                             <button
-                                @click="$emit('payment-retried', receipt)"
+                                @click="$emit('payment-retried', invoice)"
                                 class="underline hover:text-gray-500"
                                 type="button"
                             >
@@ -46,7 +46,7 @@
                             <span class="mx-2">|</span>
                         </span>
 
-                        <a class="underline hover:text-gray-500" :href="receipt.receipt_url" target="_blank" :title="__('Download Receipt')">
+                        <a class="underline hover:text-gray-500" :href="invoice.invoice_url" target="_blank" :title="__('Download Invoice')">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
@@ -56,7 +56,7 @@
             </div>
         </div>
 
-        <cursor-paginator v-if="hasPaginator()" class="mt-4" :preserve-scroll="true" :paginator="receipts" :reload-key="reloadKey" />
+        <cursor-paginator v-if="hasPaginator()" class="mt-4" :preserve-scroll="true" :paginator="invoices" :reload-key="reloadKey" />
     </div>
 </template>
 
@@ -68,15 +68,15 @@
             CursorPaginator,
         },
 
-        props: ['receipts', 'reloadKey'],
+        props: ['invoices', 'reloadKey'],
 
         methods: {
             hasPaginator() {
-                return 'data' in this.receipts;
+                return 'data' in this.invoices;
             },
 
-            receiptsData() {
-                return this.receipts.data ?? this.receipts;
+            invoicesData() {
+                return this.invoices.data ?? this.invoices;
             },
         },
     }

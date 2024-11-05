@@ -83,8 +83,8 @@ class NewSubscriptionController
             'billing_city' => [$addressRule, 'max:225'],
             'billing_state' => [$addressRule, 'max:225'],
             'billing_postal_code' => [$addressRule, 'max:225'],
-            'billing_country' => [$countryRule, 'max:2', new ValidCountry],
-            'vat_id' => ['nullable', 'max:225', new ValidVatNumber],
+            'billing_country' => [$countryRule, 'max:2', new ValidCountry()],
+            'vat_id' => ['nullable', 'max:225', new ValidVatNumber()],
         ]);
     }
 }

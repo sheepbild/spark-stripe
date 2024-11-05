@@ -9,13 +9,6 @@ use InvalidArgumentException;
 class SparkManager
 {
     /**
-     * Indicates if Spark migrations will be run.
-     *
-     * @var bool
-     */
-    public $runsMigrations = true;
-
-    /**
      * The callback that determines the current billable.
      *
      * @var array
@@ -353,25 +346,5 @@ class SparkManager
     public function billableModel($billableType)
     {
         return config("spark.billables.$billableType.model");
-    }
-
-    /**
-     * Configure Spark to not register its migrations.
-     *
-     * @return void
-     */
-    public function ignoreMigrations()
-    {
-        $this->runsMigrations = false;
-    }
-
-    /**
-     * Determine if Spark should run its migrations.
-     *
-     * @return bool
-     */
-    public function runsMigrations()
-    {
-        return $this->runsMigrations;
     }
 }

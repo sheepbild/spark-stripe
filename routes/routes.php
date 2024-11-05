@@ -31,8 +31,8 @@ Route::group([
         // Billing Information...
         Route::put('/billing-information', 'UpdateBillingInformationController');
 
-        // Receipt Emails...
-        Route::put('/receipt-emails', 'UpdateReceiptEmailsController');
+        // Invoice Emails...
+        Route::put('/invoice-emails', 'UpdateInvoiceEmailsController');
 
         // Apply a Coupon...
         Route::put('/coupon', 'ApplyCouponController');
@@ -41,7 +41,7 @@ Route::group([
         Route::post('/tax-rate', 'TaxController');
 
         // Billing Information...
-        Route::get('/{type}/{id}/receipts/{receiptId}/download', 'DownloadReceiptController')->name('spark.receipts.download');
+        Route::get('/{type}/{id}/invoices/{invoiceId}/download', 'DownloadInvoiceController')->name('spark.invoices.download');
     });
 });
 

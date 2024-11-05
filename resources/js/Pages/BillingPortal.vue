@@ -237,7 +237,7 @@
 
                                         <textarea id="extra" rows="5"
                                                   v-model="subscriptionForm.extra"
-                                                  :placeholder="__('If you need to add specific contact or tax information to your receipts, like your full business name, VAT identification number, or address of record, you may add it here.')"
+                                                  :placeholder="__('If you need to add specific contact or tax information to your invoices, like your full business name, VAT identification number, or address of record, you may add it here.')"
                                                   class="w-full mt-1 md:mt-0 bg-white border border-gray-200 px-3 py-2 rounded focus:outline-none"></textarea>
                                     </div>
 
@@ -650,7 +650,7 @@
                                 <div class="bg-white sm:rounded-lg shadow-sm">
                                     <div class="p-6">
                                         <div class="max-w-2xl text-sm text-gray-600">
-                                            {{ __('If you need to add specific contact or tax information to your receipts, like your full business name, VAT identification number, or address of record, you may add it here.') }}
+                                            {{ __('If you need to add specific contact or tax information to your invoices, like your full business name, VAT identification number, or address of record, you may add it here.') }}
                                         </div>
 
                                         <div class="mt-6 md:flex">
@@ -671,31 +671,31 @@
                             </div>
                         </div>
 
-                        <!-- Receipts Emails -->
-                        <div v-if="$page.props.sendsReceiptsToCustomAddresses">
+                        <!-- Invoice Emails -->
+                        <div v-if="$page.props.sendsInvoicesToCustomAddresses">
                             <section-heading>
-                                {{ __('Receipt Email Addresses') }}
+                                {{ __('Invoice Email Addresses') }}
                             </section-heading>
 
                             <div class="mt-3">
                                 <div class="bg-white sm:rounded-lg shadow-sm">
                                     <div class="p-6">
                                         <div class="max-w-2xl text-sm text-gray-600">
-                                            {{ __('We will send a receipt download link to the email addresses that you specify below. You may separate multiple email addresses using commas.') }}
+                                            {{ __('We will send an invoice download link to the email addresses that you specify below. You may separate multiple email addresses using commas.') }}
                                         </div>
 
                                         <div class="mt-6 md:flex">
-                                            <label for="receipt_emails" class="md:w-1/3 mr-10 mt-2 text-gray-800 text-sm font-semibold">{{ __('Email Addresses') }}</label>
+                                            <label for="invoice_emails" class="md:w-1/3 mr-10 mt-2 text-gray-800 text-sm font-semibold">{{ __('Email Addresses') }}</label>
 
-                                            <input type="text" id="receipt_emails" ref="city"
-                                                   v-model="receiptEmailsForm.receipt_emails"
+                                            <input type="text" id="invoice_emails" ref="city"
+                                                   v-model="invoiceEmailsForm.invoice_emails"
                                                    :placeholder="__('Email Addresses')"
                                                    class="w-full mt-1 md:mt-0 bg-white border border-gray-200 px-3 py-2 rounded outline-none"/>
                                         </div>
                                     </div>
 
                                     <div class="px-6 py-4 bg-gray-100 bg-opacity-50 border-t border-gray-100 text-right">
-                                        <spark-button @click.native="updateReceiptEmails" disabled="true" ref="updateReceiptEmailsButton">
+                                        <spark-button @click.native="updateInvoiceEmails" disabled="true" ref="updateInvoiceEmailsButton">
                                             {{ __('Save') }}
                                         </spark-button>
                                     </div>
@@ -776,20 +776,20 @@
                                 {{ __('Open Invoices') }}
                             </section-heading>
 
-                            <receipt-list
+                            <invoice-list
                                 @payment-retried="open(retryPayment, __('Are you sure you want to attempt to pay :amount?', { amount: $event.amount }), [$event])"
                                 class="mt-3"
-                                :receipts="openInvoices"
+                                :invoices="openInvoices"
                             />
                         </div>
 
-                        <!-- Receipts -->
-                        <div v-if="receipts && receipts.data.length > 0">
+                        <!-- Paid Invoices -->
+                        <div v-if="paidInvoices && paidInvoices.data.length > 0">
                             <section-heading>
-                                {{ __('Receipts') }}
+                                {{ __('Invoices') }}
                             </section-heading>
 
-                            <receipt-list class="mt-3" :receipts="receipts" reload-key="receipts" />
+                            <invoice-list class="mt-3" :invoices="paidInvoices" reload-key="invoices" />
                         </div>
 
                         <div class="text-center lg:hidden" id="footerTermsLink" v-if="$page.props.termsUrl">
@@ -839,11 +839,11 @@
 import ErrorMessages from './../Components/ErrorMessages';
 import InfoMessages from './../Components/InfoMessages';
 import IntervalSelector from './../Components/IntervalSelector';
+import InvoiceList from './../Components/InvoiceList';
 import Modal from './../Components/Modal';
 import Plan from './../Components/Plan';
 import PlanList from './../Components/PlanList';
 import PlanSectionHeading from './../Components/PlanSectionHeading';
-import ReceiptList from './../Components/ReceiptList';
 import SectionHeading from './../Components/SectionHeading';
 import SparkButton from './../Components/Button';
 import SparkSecondaryButton from './../Components/SecondaryButton';
@@ -855,11 +855,11 @@ export default {
         ErrorMessages,
         InfoMessages,
         IntervalSelector,
+        InvoiceList,
         Modal,
         Plan,
         PlanList,
         PlanSectionHeading,
-        ReceiptList,
         SectionHeading,
         SparkButton,
         SparkSecondaryButton,
@@ -923,8 +923,8 @@ export default {
                 extra: ''
             },
 
-            receiptEmailsForm: {
-                receipt_emails: '',
+            invoiceEmailsForm: {
+                invoice_emails: '',
             },
 
             couponForm: {
@@ -968,11 +968,11 @@ export default {
             }
         },
 
-        "receiptEmailsForm.receipt_emails"(newValue, oldValue) {
+        "invoiceEmailsForm.invoice_emails"(newValue, oldValue) {
             if (newValue || oldValue) {
-                this.$refs.updateReceiptEmailsButton.$el.removeAttribute('disabled')
+                this.$refs.updateInvoiceEmailsButton.$el.removeAttribute('disabled')
             } else {
-                this.$refs.updateReceiptEmailsButton.$el.setAttribute('disabled', 'disabled')
+                this.$refs.updateInvoiceEmailsButton.$el.setAttribute('disabled', 'disabled')
             }
         },
 
@@ -1048,7 +1048,7 @@ export default {
 
         this.billingInformationForm.extra = this.$page.props.billable.extra_billing_information;
 
-        this.receiptEmailsForm.receipt_emails = this.$page.props.billable.receipt_emails.join(',');
+        this.invoiceEmailsForm.invoice_emails = this.$page.props.billable.invoice_emails.join(',');
 
         router.on('invalid', (event) => {
             event.preventDefault();
@@ -1084,10 +1084,10 @@ export default {
         },
 
         /**
-         * Get all receipts once the data has been loaded.
+         * Get all paid invoices once the data has been loaded.
          */
-        receipts() {
-            return this.invoices?.receipts || null
+        paidInvoices() {
+            return this.invoices?.paid || null
         },
 
         /**
@@ -1291,7 +1291,7 @@ export default {
         /**
          * Determine if a billing address is present.
          */
-         hasBillingAddress() {
+        hasBillingAddress() {
             const billable = this.$page.props.billable;
 
             return billable.billing_address ||
@@ -1325,18 +1325,18 @@ export default {
         },
 
         /**
-         * Update the email addresses we send receipts to.
+         * Update the email addresses we send invoices to.
          */
-        updateReceiptEmails() {
+        updateInvoiceEmails() {
             this.processing = true;
 
-            this.request('PUT', '/spark/receipt-emails', {
-                receipt_emails: this.receiptEmailsForm.receipt_emails,
+            this.request('PUT', '/spark/invoice-emails', {
+                invoice_emails: this.invoiceEmailsForm.invoice_emails,
             }).then(response => {
                 this.reloadData();
 
-                if (! this.receiptEmailsForm.receipt_emails) {
-                    this.$refs.updateReceiptEmailsButton.$el.setAttribute('disabled', 'disabled')
+                if (! this.invoiceEmailsForm.invoice_emails) {
+                    this.$refs.updateInvoiceEmailsButton.$el.setAttribute('disabled', 'disabled')
                 }
             });
         },

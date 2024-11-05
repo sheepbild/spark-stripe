@@ -3,7 +3,6 @@
 namespace Spark;
 
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -19,9 +18,10 @@ class FrontendState
      * Get the data should be shared with the frontend.
      *
      * @param  string  $type
+     * @param  \Spark\Billable  $billable
      * @return array
      */
-    public function current($type, Model $billable)
+    public function current($type, $billable)
     {
         /** @var \Laravel\Cashier\Subscription|null */
         $subscription = $billable->subscription();
@@ -54,7 +54,7 @@ class FrontendState
 
             'invoices' => Inertia::lazy(fn () => [
                 'open' => $this->openInvoices($billable),
-                'receipts' => $this->paidInvoices($billable),
+                'paid' => $this->paidInvoices($billable),
             ]),
 
             'billable' => $billable->toArray(),
@@ -91,7 +91,7 @@ class FrontendState
             'paymentMethods' => fn () => $this->paymentMethods($billable),
             'plan' => $plan,
             'seatName' => Spark::seatName($type),
-            'sendsReceiptsToCustomAddresses' => Features::optionEnabled('receipt-emails-sending', 'custom-addresses'),
+            'sendsInvoicesToCustomAddresses' => Features::optionEnabled('invoice-emails-sending', 'custom-addresses'),
             'sparkPath' => config('spark.path'),
             'state' => $this->state($billable, $subscription),
             'stripeKey' => config('cashier.key'),
@@ -136,7 +136,7 @@ class FrontendState
      * Get the subscription plans.
      *
      * @param  string  $type
-     * @param  \Illuminate\Database\Eloquent\Model  $billable
+     * @param  \Spark\Billable  $billable
      * @return \Illuminate\Support\Collection
      */
     protected function getPlans($type, $billable)
@@ -173,10 +173,11 @@ class FrontendState
     /**
      * Get the current subscription state.
      *
+     * @param  \Spark\Billable  $billable
      * @param  \Laravel\Cashier\Subscription|null  $subscription
      * @return string
      */
-    protected function state(Model $billable, $subscription)
+    protected function state($billable, $subscription)
     {
         if (! $subscription && request('checkout') === 'subscription_started') {
             return 'pending';
@@ -209,14 +210,29 @@ class FrontendState
 
         return $billable->paymentMethods()->map(function (PaymentMethod $paymentMethod) use ($defaultPaymentMethod) {
             $pm = match ($paymentMethod->type) {
+                'bacs_debit' => [
+                    'last4' => $paymentMethod->bacs_debit->last4,
+                    'brand' => 'BACS Debit',
+                    'expiration' => null,
+                ],
                 'card' => [
                     'last4' => $paymentMethod->card->last4,
                     'brand' => ucfirst($paymentMethod->card->brand),
                     'expiration' => Carbon::createFromDate($paymentMethod->card->exp_year, $paymentMethod->card->exp_month, 1)->format('M Y'),
                 ],
+                'cashapp' => [
+                    'last4' => null,
+                    'brand' => 'Cash App: '.$paymentMethod->cashapp->cashtag,
+                    'expiration' => null,
+                ],
                 'link' => [
                     'last4' => null,
                     'brand' => 'Link: '.$paymentMethod->link->email,
+                    'expiration' => null,
+                ],
+                'paypal' => [
+                    'last4' => null,
+                    'brand' => 'PayPal: '.$paymentMethod->paypal->payer_email,
                     'expiration' => null,
                 ],
                 'sepa_debit' => [
@@ -258,7 +274,7 @@ class FrontendState
                 'amount' => $invoice->realTotal(),
                 'date' => $invoice->date()->translatedFormat(config('spark.date_format', 'F j, Y')),
                 'id' => $invoice->id,
-                'receipt_url' => route('spark.receipts.download', [
+                'invoice_url' => route('spark.invoices.download', [
                     $billable->sparkConfiguration()['type'],
                     $billable->id,
                     $invoice->id,
@@ -273,7 +289,7 @@ class FrontendState
      * Paginate all paid invoices of the given billable.
      *
      * @param  \Spark\Billable  $billable
-     * @return \Illuminate\Contracts\Pagination\CursorPaginator
+     * @return \Illuminate\Contracts\Pagination\CursorPaginator|array
      */
     protected function paidInvoices($billable)
     {
@@ -283,36 +299,13 @@ class FrontendState
                 'amount' => $invoice->realTotal(),
                 'date' => $invoice->date()->translatedFormat(config('spark.date_format', 'F j, Y')),
                 'id' => $invoice->id,
-                'receipt_url' => route('spark.receipts.download', [
+                'invoice_url' => route('spark.invoices.download', [
                     $billable->sparkConfiguration()['type'],
                     $billable->id,
                     $invoice->id,
                 ]),
                 'status' => $invoice->status,
             ]);
-    }
-
-    /**
-     * List all receipts of the given billable.
-     *
-     * @return array
-     *
-     * @deprecated Will be removed in a future Spark release.
-     */
-    protected function receipts(Model $billable)
-    {
-        return $billable->localReceipts
-            ->map(function ($receipt) use ($billable) {
-                $receipt->receipt_url = route('spark.receipts.download', [
-                    $billable->sparkConfiguration()['type'],
-                    $billable->id,
-                    $receipt->provider_id,
-                ]);
-
-                return $receipt;
-            })
-            ->values()
-            ->toArray();
     }
 
     /**

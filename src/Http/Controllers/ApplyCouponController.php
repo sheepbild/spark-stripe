@@ -14,7 +14,7 @@ class ApplyCouponController
     use RetrievesBillableModels;
 
     /**
-     * Update the receipt emails for the given billable.
+     * Apply the coupon to the subscription.
      *
      * @param  \Illuminate\Http\Request
      * @return void
